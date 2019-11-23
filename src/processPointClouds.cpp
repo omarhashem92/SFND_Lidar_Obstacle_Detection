@@ -43,7 +43,28 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 {
   // TODO: Create two new point clouds, one cloud with obstacles and other with segmented plane
 
-    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(cloud, cloud);
+    //typename pcl::PointCloud<PointT>::Ptr obsPointCloud = new pcl::PointCloud<PointT>();  //check later the reason of error here
+    //typename pcl::PointCloud<PointT>::Ptr roadPointCloud = new pcl::PointCloud<PointT>();
+    typename pcl::PointCloud<PointT>::Ptr obsPointCloud (new pcl::PointCloud<PointT>), roadPointCloud (new pcl::PointCloud<PointT>);
+
+    for(auto index : inliers->indices)
+    {
+        roadPointCloud->points.push_back(cloud->points[index]);
+    }
+
+     // Create the filtering object
+    pcl::ExtractIndices<PointT> extract;
+    // Extract the inliers
+    extract.setInputCloud (cloud);
+    extract.setIndices (inliers);
+    extract.setNegative (false);
+    extract.filter (*roadPointCloud);
+    extract.setNegative (true);
+    extract.filter (*obsPointCloud);
+
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(obsPointCloud, roadPointCloud);
+
+    //std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(cloud, cloud);
     return segResult;
 }
 
@@ -53,12 +74,34 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 {
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	pcl::PointIndices::Ptr inliers;
+	//pcl::PointIndices::Ptr inliers;
     // TODO:: Fill in this function to find inliers for the cloud.
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
+
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
+    pcl::PointIndices::Ptr inliers (new pcl::PointIndices ()); //Indicies for the Inliners(road line)
+
+    // Create the segmentation object
+    pcl::SACSegmentation<pcl::PointXYZ> seg;
+    // Optional
+    seg.setOptimizeCoefficients (true);
+    // Mandatory
+    seg.setModelType (pcl::SACMODEL_PLANE);
+    seg.setMethodType (pcl::SAC_RANSAC);    //RANSAC is the algorithm for the segmentation. to classify which points are belong to the road and which belong to obstacles.
+    seg.setMaxIterations (maxIterations);   //maximum iterations for drawing a line and checking for the points that belong to that line with the min distance.
+    seg.setDistanceThreshold (distanceThreshold);   //thickness of the road and any other point that is not belong to the road (line) is considered an obstacle.
+    
+    // Segment the largest planar component from the remaining cloud
+    seg.setInputCloud (cloud);
+    seg.segment (*inliers, *coefficients);
+    if (inliers->indices.size () == 0)
+    {
+      std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
+      //break;
+    }
 
     std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
     return segResult;

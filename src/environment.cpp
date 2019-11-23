@@ -49,11 +49,15 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
     Lidar *ptrLidar = new Lidar(cars , 0);
     pcl::PointCloud<pcl::PointXYZ>::Ptr scanPointCloud = ptrLidar->scan();
     //renderRays(viewer , ptrLidar->position , scanPointCloud);
-    renderPointCloud(viewer , scanPointCloud , "Point Cloud");   //rendering point clouds only and to remove the cars set renderScene to false
+    //renderPointCloud(viewer , scanPointCloud , "Point Cloud");   //rendering point clouds only and to remove the cars set renderScene to false
 
 
     // TODO:: Create point processor
-  
+    ProcessPointClouds <pcl::PointXYZ>*ptrProcessPointClouds = new ProcessPointClouds<pcl::PointXYZ>;
+    std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segmentCloud = ptrProcessPointClouds->SegmentPlane(scanPointCloud, 100, 0.2);
+    renderPointCloud(viewer,segmentCloud.first,"obstCloud",Color(1,0,0));
+    renderPointCloud(viewer,segmentCloud.second,"roadCloud",Color(0,1,0));
+
 }
 
 
