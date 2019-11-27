@@ -24,11 +24,32 @@ std::vector<float> findLineCoefficents(float x1, float y1, float x2, float y2)
 	return lineCoefficents;
 }
 
+std::vector<float> findLineCoefficentsPlane(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3)
+{
+	// equation Ax + By + Cz + D = 0
+	float a = (y2-y1) * (z3-z1) - (z2-z1) * (y3-y1);
+	float b = (z2-z1) * (x3-x1) - (x2-x1) * (z3-z1);
+	float c = (x2-x1) * (y3-y1) - (y2-y1) * (x3-x1);
+	float d = -(a * x1 + b * y1 + c * z1);
+	std::vector<float> lineCoefficents = {a, b, c, d};
+
+	return lineCoefficents;
+}
+
+
 float getPointDistance(float a, float b, float c, float x, float y)
 {
 	//apply the equation: d = |Ax + By + C| / sqrt(A^2 + B^2)
 	float d = fabs(a * x + b * y + c) / sqrt(a * a + b * b);
 	return d;
+}
+
+
+float getPointDistancePlane(float a, float b, float c, float d, float x, float y, float z)
+{
+	//apply the equation: distance = |Ax + By + Cz + D| / sqrt(A^2 + B^2 + C^2)
+	float distance = fabs(a * x + b * y + c * z + d) / sqrt(a * a + b * b + c * c);
+	return distance;
 }
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData()
@@ -155,6 +176,83 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 
 }
 
+
+std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+{
+	std::unordered_set<int> inliersResult;
+	srand(time(NULL));
+	
+	// TODO: Fill in this function
+	int point1Index, point2Index, point3Index, maxCountPointsOnLine = 0, bestpoint1Index = 0, bestpoint2Index = 0, bestpoint3Index = 0;
+	// For max iterations 
+	for (auto index = 0 ; index < maxIterations ; index++ )
+	{
+	// Randomly sample subset and fit line
+	point1Index = rand() % cloud->points.size();
+	point3Index = point2Index = point1Index;
+
+	pcl::PointXYZ point1 = cloud->points[point1Index];
+	pcl::PointXYZ point2 = cloud->points[point2Index];
+	pcl::PointXYZ point3 = cloud->points[point3Index];
+
+	std::vector<float> lineCoeffs = findLineCoefficentsPlane(point1.x, point1.y, point1.z, point2.x, point2.y, point2.z, point3.x, point3.y, point3.z);
+
+	float a = lineCoeffs[0];
+	float b = lineCoeffs[1];
+	float c = lineCoeffs[2];
+	float d = lineCoeffs[3];
+
+	int countPointsOnLine = 0;
+
+	// Measure distance between every point and fitted line
+	// If distance is smaller than threshold count it as inlier
+
+	for(int i = 0; i < cloud->points.size(); ++i)
+	{
+		pcl::PointXYZ aPoint = cloud->points[i];
+		float x = aPoint.x, y = aPoint.y, z=aPoint.z;
+		float dist = getPointDistancePlane(a, b, c, d, x, y, z);
+		if(dist < distanceTol)
+		{
+				countPointsOnLine++;
+		}
+	}
+	if(countPointsOnLine > maxCountPointsOnLine)
+	{
+		maxCountPointsOnLine = countPointsOnLine;
+		bestpoint1Index = point1Index;
+		bestpoint2Index = point2Index;
+		bestpoint3Index = point3Index;
+	}
+
+	}
+	// Return indicies of inliers from fitted line with most inliers
+	pcl::PointXYZ bestPoint1 = cloud->points[bestpoint1Index];
+	pcl::PointXYZ bestPoint2 = cloud->points[bestpoint2Index];
+	pcl::PointXYZ bestPoint3 = cloud->points[bestpoint3Index];
+	std::vector<float> bestLineCoeffs = findLineCoefficentsPlane(bestPoint1.x, bestPoint1.y, bestPoint1.z, bestPoint2.x, bestPoint2.y, bestPoint2.z, bestPoint3.x, bestPoint3.y, bestPoint3.z);
+	float bestA = bestLineCoeffs[0];
+	float bestB = bestLineCoeffs[1];
+	float bestC = bestLineCoeffs[2];
+	float bestD = bestLineCoeffs[3];
+
+	for(int i = 0; i < cloud->points.size(); ++i)
+	{
+		pcl::PointXYZ aPoint = cloud->points[i];
+		float x = aPoint.x, y = aPoint.y, z= aPoint.z;
+		float dist = getPointDistancePlane(bestA, bestB, bestC, bestD, x, y, z);
+		if(dist < distanceTol)
+		{
+			inliersResult.insert(i);
+		}
+	}
+
+
+	return inliersResult;
+
+}
+
+
 int main ()
 {
 
@@ -162,7 +260,7 @@ int main ()
 	pcl::visualization::PCLVisualizer::Ptr viewer = initScene();
 
 	// Create data
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData3D();
 	
 
 	// TODO: Change the max iteration and distance tolerance arguments for Ransac function
