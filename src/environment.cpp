@@ -85,7 +85,20 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
 
   ProcessPointClouds<pcl::PointXYZI>* pointProcessorI = new ProcessPointClouds<pcl::PointXYZI>();
   pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = pointProcessorI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
-  renderPointCloud(viewer,inputCloud,"inputCloud");
+  //renderPointCloud(viewer,inputCloud,"inputCloud");
+
+
+    float filterRes = 0.2f;//The voxel box resultion in meters
+    float minX = -10.0f, maxX = 40.0f;//longitudinal view
+    float minY = -6.0f, maxY = 6.0f;//lateral view
+    float minZ = -2.0f, maxZ = 1.0f;//controls the height of the lidar
+    Eigen::Vector4f minPoint(minX,minY,minZ,1);
+    Eigen::Vector4f maxPoint(maxX,maxY,maxZ,1);
+
+
+  auto filterCloud = pointProcessorI->FilterCloud(inputCloud, filterRes , minPoint, maxPoint);
+  renderPointCloud(viewer,filterCloud,"filterCloud");
+
 }
 
 
