@@ -26,13 +26,12 @@ std::vector<float> findLineCoefficents(float x1, float y1, float x2, float y2)
 
 std::vector<float> findLineCoefficentsPlane(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3)
 {
-	// equation Ax + By + Cz + D = 0
+	//plane equation Ax + By + Cz + D = 0
 	float a = (y2-y1) * (z3-z1) - (z2-z1) * (y3-y1);
 	float b = (z2-z1) * (x3-x1) - (x2-x1) * (z3-z1);
 	float c = (x2-x1) * (y3-y1) - (y2-y1) * (x3-x1);
 	float d = -(a * x1 + b * y1 + c * z1);
 	std::vector<float> lineCoefficents = {a, b, c, d};
-
 	return lineCoefficents;
 }
 
@@ -47,9 +46,9 @@ float getPointDistance(float a, float b, float c, float x, float y)
 
 float getPointDistancePlane(float a, float b, float c, float d, float x, float y, float z)
 {
-	//apply the equation: distance = |Ax + By + Cz + D| / sqrt(A^2 + B^2 + C^2)
-	float distance = fabs(a * x + b * y + c * z + d) / sqrt(a * a + b * b + c * c);
-	return distance;
+//apply the equation: d = |Ax + By + Cz + D| / sqrt(A^2 + B^2 + C^2)
+	float dist = fabs(a * x + b * y + c * z + d) / sqrt(a * a + b * b + c * c);
+	return dist;
 }
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData()
@@ -106,7 +105,7 @@ pcl::visualization::PCLVisualizer::Ptr initScene()
   	return viewer;
 }
 
-std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+std::unordered_set<int> Ransac2D(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
@@ -177,7 +176,7 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 }
 
 
-std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
@@ -191,6 +190,12 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
 	point1Index = rand() % cloud->points.size();
 	point3Index = point2Index = point1Index;
 
+	while(point1Index == point2Index)//make sure that the two indices are not equal
+			point2Index = rand() % cloud->points.size(); 
+		
+	while(point3Index == point2Index || point3Index == point1Index)//make sure that the two indices are not equal
+			point3Index = rand() % cloud->points.size();
+
 	pcl::PointXYZ point1 = cloud->points[point1Index];
 	pcl::PointXYZ point2 = cloud->points[point2Index];
 	pcl::PointXYZ point3 = cloud->points[point3Index];
@@ -202,10 +207,10 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
 	float c = lineCoeffs[2];
 	float d = lineCoeffs[3];
 
-	int countPointsOnLine = 0;
+	float countPointsOnLine = 0;
 
 	// Measure distance between every point and fitted line
-	// If distance is smaller than threshold count it as inlier
+	// If distance is smaller than threshold count it as idnlier
 
 	for(int i = 0; i < cloud->points.size(); ++i)
 	{
@@ -226,6 +231,9 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
 	}
 
 	}
+	//std::cout<<maxCountPointsOnLine<<std::endl;
+
+
 	// Return indicies of inliers from fitted line with most inliers
 	pcl::PointXYZ bestPoint1 = cloud->points[bestpoint1Index];
 	pcl::PointXYZ bestPoint2 = cloud->points[bestpoint2Index];
@@ -235,6 +243,12 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
 	float bestB = bestLineCoeffs[1];
 	float bestC = bestLineCoeffs[2];
 	float bestD = bestLineCoeffs[3];
+
+	//std::cout<<"bestA,B,C,D"<<std::endl;
+	//std::cout<<bestA<<std::endl;
+	//std::cout<<bestB<<std::endl;
+	//std::cout<<bestC<<std::endl;
+	//std::cout<<bestD<<std::endl;
 
 	for(int i = 0; i < cloud->points.size(); ++i)
 	{
@@ -264,7 +278,7 @@ int main ()
 	
 
 	// TODO: Change the max iteration and distance tolerance arguments for Ransac function
-	std::unordered_set<int> inliers = Ransac(cloud, 0, 0);
+	std::unordered_set<int> inliers = Ransac(cloud, 1000, 0.2);
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr  cloudInliers(new pcl::PointCloud<pcl::PointXYZ>());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZ>());
@@ -296,3 +310,4 @@ int main ()
   	}
   	
 }
+
