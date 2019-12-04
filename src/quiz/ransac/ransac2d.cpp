@@ -2,11 +2,10 @@
 // Quiz on implementing simple RANSAC line fitting
 
 #include "../../render/render.h"
-#include <unordered_set>
 #include "../../processPointClouds.h"
 // using templates for processPointClouds so also include .cpp to help linker
 #include "../../processPointClouds.cpp"
-
+#include "ransac.h"
 
 
 //line coefficents are a, b, c

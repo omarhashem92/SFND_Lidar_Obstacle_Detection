@@ -7,7 +7,9 @@
 #include "processPointClouds.h"
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
-
+#include "quiz/ransac/Segment.h"
+#include "Clustering.h"
+//#include "Clustering.cpp"
 #define SEG_MAX_ITERATIONS      150
 #define SEG_DISTANCE_TOLERANCE  0.2
 
@@ -107,7 +109,11 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
   
   
   // Segmentation
+    //std::pair<pcl::PointCloud<pointT>::Ptr, pcl::PointCloud<pointT>::Ptr> segmentCloud = Ransac(filterCloud, SEG_MAX_ITERATIONS, SEG_DISTANCE_TOLERANCE);
+    //std::pair<pcl::PointCloud<pointT>::Ptr, pcl::PointCloud<pointT>::Ptr> segmentCloud = SegmentPlanes(filterCloud, SEG_MAX_ITERATIONS, SEG_DISTANCE_TOLERANCE );
+    
     std::pair<pcl::PointCloud<pointT>::Ptr, pcl::PointCloud<pointT>::Ptr> segmentCloud = pointProcessorI->SegmentPlane(filterCloud, SEG_MAX_ITERATIONS, SEG_DISTANCE_TOLERANCE);
+
     auto obstCloud = segmentCloud.first;
     auto planeCloud = segmentCloud.second;
   //renderPointCloud(viewer,obstCloud,"obstCloud",Color(1,0,0));
@@ -116,7 +122,9 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
 
    
   //Clustering
-    auto cloudCluster = pointProcessorI->Clustering(segmentCloud.first, CLU_DISTANCE_TOLERANCE, CLU_MIN_SIZE, CLU_MAX_SIZE);
+    auto cloudCluster = myClustering(segmentCloud.first, CLU_DISTANCE_TOLERANCE, CLU_MIN_SIZE, CLU_MAX_SIZE);
+    //auto cloudCluster = pointProcessorI->Clustering(segmentCloud.first, CLU_DISTANCE_TOLERANCE, CLU_MIN_SIZE, CLU_MAX_SIZE);
+
     int clusterId = 0;
     std::vector<Color> colors = {Color(1,0,0), Color(0,1,0), Color(0,0,1)};
     for(pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : cloudCluster)

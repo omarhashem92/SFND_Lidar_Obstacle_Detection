@@ -123,6 +123,33 @@ environment/fast:
 	$(MAKE) -f CMakeFiles/environment.dir/build.make CMakeFiles/environment.dir/build
 .PHONY : environment/fast
 
+src/Clustering.o: src/Clustering.cpp.o
+
+.PHONY : src/Clustering.o
+
+# target to build an object file
+src/Clustering.cpp.o:
+	$(MAKE) -f CMakeFiles/environment.dir/build.make CMakeFiles/environment.dir/src/Clustering.cpp.o
+.PHONY : src/Clustering.cpp.o
+
+src/Clustering.i: src/Clustering.cpp.i
+
+.PHONY : src/Clustering.i
+
+# target to preprocess a source file
+src/Clustering.cpp.i:
+	$(MAKE) -f CMakeFiles/environment.dir/build.make CMakeFiles/environment.dir/src/Clustering.cpp.i
+.PHONY : src/Clustering.cpp.i
+
+src/Clustering.s: src/Clustering.cpp.s
+
+.PHONY : src/Clustering.s
+
+# target to generate assembly for a file
+src/Clustering.cpp.s:
+	$(MAKE) -f CMakeFiles/environment.dir/build.make CMakeFiles/environment.dir/src/Clustering.cpp.s
+.PHONY : src/Clustering.cpp.s
+
 src/environment.o: src/environment.cpp.o
 
 .PHONY : src/environment.o
@@ -213,6 +240,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... environment"
+	@echo "... src/Clustering.o"
+	@echo "... src/Clustering.i"
+	@echo "... src/Clustering.s"
 	@echo "... src/environment.o"
 	@echo "... src/environment.i"
 	@echo "... src/environment.s"
