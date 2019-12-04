@@ -117,7 +117,14 @@ std::unordered_set<int> Ransac2D(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int 
 	{
 	// Randomly sample subset and fit line
 	point1Index = rand() % cloud->points.size();
-	point2Index = point1Index;
+	point2Index = rand() % cloud->points.size();
+
+	while(point2Index == point1Index)
+	{
+		point2Index = rand() % cloud->points.size();
+
+	}
+
 
 	pcl::PointXYZ point1 = cloud->points[point1Index];
 	pcl::PointXYZ point2 = cloud->points[point2Index];
@@ -188,13 +195,21 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 	{
 	// Randomly sample subset and fit line
 	point1Index = rand() % cloud->points.size();
-	point3Index = point2Index = point1Index;
+	point2Index = rand() % cloud->points.size();
+	point3Index = rand() % cloud->points.size();
+
 
 	while(point1Index == point2Index)//make sure that the two indices are not equal
-			point2Index = rand() % cloud->points.size(); 
+	{
+		point2Index = rand() % cloud->points.size(); 
+
+	}
 		
 	while(point3Index == point2Index || point3Index == point1Index)//make sure that the two indices are not equal
-			point3Index = rand() % cloud->points.size();
+	{
+		point3Index = rand() % cloud->points.size();
+
+	}
 
 	pcl::PointXYZ point1 = cloud->points[point1Index];
 	pcl::PointXYZ point2 = cloud->points[point2Index];

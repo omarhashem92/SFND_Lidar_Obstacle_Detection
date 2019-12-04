@@ -77,7 +77,10 @@ void render2DTree(Node* node, pcl::visualization::PCLVisualizer::Ptr& viewer, Bo
 
 void proximity(int idx, std::vector<int> &cluster, std::vector<bool> &isProcessed, const std::vector<std::vector<float>> &points, KdTree *tree, float distanceTol)
 {
+	if(isProcessed[idx] == false)
+	{
 	isProcessed[idx] = true;
+	}
 	cluster.push_back(idx);
 	auto nearbyPointIndices = tree->search(points[idx],distanceTol);
 	for(auto nearbyPointIdx : nearbyPointIndices)

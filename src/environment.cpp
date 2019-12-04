@@ -8,13 +8,13 @@
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
 
-#define SEG_MAX_ITERATIONS      100
+#define SEG_MAX_ITERATIONS      150
 #define SEG_DISTANCE_TOLERANCE  0.2
 
 
-#define CLU_DISTANCE_TOLERANCE  0.5
-#define CLU_MIN_SIZE            15
-#define CLU_MAX_SIZE            300
+#define CLU_DISTANCE_TOLERANCE  0.3
+#define CLU_MIN_SIZE            20
+#define CLU_MAX_SIZE            525
 
 
 std::vector<Car> initHighway(bool renderScene, pcl::visualization::PCLVisualizer::Ptr& viewer)
@@ -97,9 +97,9 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer, ProcessPointCloud
   
   // Filteration
     float filterRes = 0.2f;//The voxel box resultion in meters
-    float minX = -10.0f, maxX = 40.0f;//longitudinal view
-    float minY = -6.0f, maxY = 6.0f;//lateral view
-    float minZ = -2.0f, maxZ = 1.0f;//controls the height of the lidar
+    float minX = -7.5f, maxX = 32.0f;//longitudinal view
+    float minY = -6.0f, maxY = 7.0f;//lateral view
+    float minZ = -2.0f, maxZ = 0.6f;//controls the height of the lidar
     Eigen::Vector4f minPoint(minX,minY,minZ,1);
     Eigen::Vector4f maxPoint(maxX,maxY,maxZ,1);
     auto filterCloud = pointProcessorI->FilterCloud(inputCloud, filterRes , minPoint, maxPoint);
@@ -169,7 +169,7 @@ int main (int argc, char** argv)
 
 
 
-    CameraAngle setAngle = XY;
+    CameraAngle setAngle = FPS;
     initCamera(setAngle, viewer);
     //simpleHighway(viewer);
     cityBlock(viewer,pointProcessorI,inputCloudI);

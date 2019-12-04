@@ -33,7 +33,7 @@ struct KdTree
 		}
 		else
 		{
-			uint cd = depth % 2;
+			uint cd = depth % point.size();
 			if(point[cd] < ((*currNode)->point[cd]))
 			{
 				insertHelper(&((*currNode)->left), depth+1, point, id);
@@ -43,11 +43,50 @@ struct KdTree
 				insertHelper(&((*currNode)->right), depth+1, point, id);
 			}
 						
-			
 		}
 	}
 
-bool isInsideBox(std::vector<float> point, std::vector<float> target, float distanceTol)
+/*
+	void insertHelper3D(Node **currNode, uint depth, std::vector<float> point, int id) 
+		{
+				if(*currNode == NULL)
+			{
+				*currNode = new Node(point, id);
+			}
+			else
+			{
+				uint curDepth = depth % 3;
+				if(point[curDepth] < ((*currNode)->point[curDepth]))
+				{
+					insertHelper(&((*currNode)->left), depth+1, point, id);
+				}
+				else
+				{
+					insertHelper(&((*currNode)->right), depth+1, point, id);
+				}
+							
+			}
+		}
+*/
+
+	void insert(std::vector<float> point, int id)
+	{
+		// TODO: Fill in this function to insert a new point into the tree
+		// the function should create a new node and place correctly with in the root 
+		insertHelper(&root, 0, point, id);
+		
+	}
+
+	void insert3D(std::vector<float> point, int id)
+	{
+		// TODO: Fill in this function to insert a new point into the tree
+		// the function should create a new node and place correctly with in the root 
+		insertHelper(&root, 0, point, id);
+		
+	}
+
+
+	bool isInsideBox(std::vector<float> point, std::vector<float> target, float distanceTol)
 	{
 		for(int dimension = 0;dimension < point.size();++dimension)
 		{
@@ -61,15 +100,9 @@ bool isInsideBox(std::vector<float> point, std::vector<float> target, float dist
 		return true;
 	}
 
-void insert(std::vector<float> point, int id)
-	{
-		// TODO: Fill in this function to insert a new point into the tree
-		// the function should create a new node and place correctly with in the root 
-		insertHelper(&root, 0, point, id);
-		
-	}
 
-float computeDist(std::vector<float> point1, std::vector<float> point2)
+
+	float computeDist(std::vector<float> point1, std::vector<float> point2)
 	{
 		float retDist = 0;
 		for(int dimension = 0;dimension < point1.size();++dimension)
@@ -83,8 +116,8 @@ float computeDist(std::vector<float> point1, std::vector<float> point2)
 	}
 
 
-void searchHelper(Node *currNode, uint level, std::vector<float> target, float distanceTol, std::vector<int> &ids)
-{
+	void searchHelper(Node *currNode, uint level, std::vector<float> target, float distanceTol, std::vector<int> &ids)
+	{
 	if(currNode != NULL)
 	{
 		if(isInsideBox(currNode->point, target, distanceTol))
@@ -94,6 +127,9 @@ void searchHelper(Node *currNode, uint level, std::vector<float> target, float d
 			{
 				ids.push_back(currNode->id);
 			}
+		}
+		else{
+			// do nothing
 		}
 
 		uint numDimensions = target.size();
@@ -108,7 +144,7 @@ void searchHelper(Node *currNode, uint level, std::vector<float> target, float d
 
 	}
 
-}
+	}
 
 	// return a list of point ids in the tree that are within distance of target
 	std::vector<int> search(std::vector<float> target, float distanceTol)
